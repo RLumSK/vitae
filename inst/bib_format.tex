@@ -1,13 +1,78 @@
 %%%% BIBLIOGRAPHY
 % Bibliography formatting
 
-\usepackage[sorting=ynt,citestyle=authoryear,bibstyle=authoryear-comp,defernumbers=true,maxnames=20,giveninits=true, bibencoding=utf8, terseinits=true, uniquename=init,dashed=false,doi=false,isbn=false,natbib=true,backend=biber]{biblatex}
+\usepackage[sorting=ynt,citestyle=authoryear,bibstyle=authoryear-comp,defernumbers=true,maxnames=20,giveninits=true, bibencoding=utf8, terseinits=true, uniquename=init,dashed=false,doi=true, isbn=false,natbib=true,backend=biber]{biblatex}
+
+%% https://tex.stackexchange.com/questions/274436/highlight-an-author-in-bibliography-using-biblatex-allowing-bibliography-style-t
+%%START NAME BOLD MARCO ==============================
+\usepackage{xpatch}
+\makeatletter
+\def\hlblx@bibfile@name{\jobname -boldnames.bib}
+\newwrite\hlblx@bibfile
+\immediate\openout\hlblx@bibfile=\hlblx@bibfile@name
+\newcounter{hlblx@name}
+\setcounter{hlblx@name}{0}
+\newcommand*{\hlblx@writenametobib}[1]{%
+  \stepcounter{hlblx@name}%
+  \edef\hlblx@tmp@nocite{%
+    \noexpand\AfterPreamble{%
+      \noexpand\setbox0\noexpand\vbox{%
+        \noexpand\hlblx@getmethehash{hlblx@name@\the\value{hlblx@name}}}}%
+  }%
+  \hlblx@tmp@nocite
+  \immediate\write\hlblx@bibfile{%
+    @misc{hlblx@name@\the\value{hlblx@name}, author = {\unexpanded{#1}}, %
+          options = {dataonly=true},}%
+  }%
+}
+
+\AtEndDocument{%
+  \closeout\hlblx@bibfile}
+
+\addbibresource{\hlblx@bibfile@name}
+
+\newcommand*{\hlbxl@boldhashes}{}
+\DeclareNameFormat{hlblx@hashextract}{%
+  \xifinlist{\thefield{hash}}{\hlbxl@boldhashes}
+    {}
+    {\listxadd{\hlbxl@boldhashes}{\thefield{fullhash}}}}
+
+\DeclareCiteCommand{\hlblx@getmethehash}
+  {}
+  {\printnames[hlblx@hashextract][1-999]{author}}
+  {}
+  {}
+
+\newcommand*{\addboldname}{\forcsvlist\hlblx@writenametobib}
+\newcommand*{\resetboldnames}{\def\hlbxl@boldhashes{}}
+
+
+\newcommand*{\hlblx@doboldhashes}[1]{%
+  \iffieldequalstr{hash}{#1}
+    {\bfseries\listbreak}
+    {}}%
+
+\newbibmacro*{name:bold}{%
+  \forlistloop{\hlblx@doboldhashes}{\hlbxl@boldhashes}%
+}
+
+\xpretobibmacro{name:family}{\begingroup\usebibmacro{name:bold}}{}{}
+\xpretobibmacro{name:given-family}{\begingroup\usebibmacro{name:bold}}{}{}
+\xpretobibmacro{name:family-given}{\begingroup\usebibmacro{name:bold}}{}{}
+\xpretobibmacro{name:delim}{\begingroup\normalfont}{}{}
+
+\xapptobibmacro{name:family}{\endgroup}{}{}
+\xapptobibmacro{name:given-family}{\endgroup}{}{}
+\xapptobibmacro{name:family-given}{\endgroup}{}{}
+\xapptobibmacro{name:delim}{\endgroup}{}{}
+
+%%END NAME BOLD MARCO ==============================
 
 \DeclareFieldFormat{url}{\url{#1}}
 \DeclareFieldFormat[article]{pages}{#1}
 \DeclareFieldFormat[inproceedings]{pages}{\lowercase{pp.}#1}
 \DeclareFieldFormat[incollection]{pages}{\lowercase{pp.}#1}
-\DeclareFieldFormat[article]{volume}{\mkbibbold{#1}}
+\DeclareFieldFormat[article]{volume}{\mkbibitalic{#1}}
 \DeclareFieldFormat[article]{number}{\mkbibparens{#1}}
 \DeclareFieldFormat[article]{title}{\MakeCapital{#1}}
 \DeclareFieldFormat[article]{url}{}
@@ -15,8 +80,15 @@
 \DeclareFieldFormat{shorthandwidth}{#1}
 \DeclareFieldFormat{extradate}{}
 
+
+
+%%remove months and day
+\AtEveryBibitem{\clearfield{month}}
+\AtEveryBibitem{\clearfield{day}}
+
 % No dot before number of articles
 \usepackage{xpatch}
+\usepackage{etaremune}
 \xpatchbibmacro{volume+number+eid}{\setunit*{\adddot}}{}{}{}
 
 % Remove In: for an article.
@@ -32,20 +104,31 @@
 \setlength{\bibhang}{.9cm}
 %\renewcommand{\bibfont}{\fontsize{12}{14}}
 
-\renewcommand*{\bibitem}{\addtocounter{papers}{1}\item \mbox{}\hskip-0.9cm\hbox to 0.9cm{\hfill\arabic{papers}.~\,}}
+
+% Changes to accommodate reverse numbering of pubs
+%    see https://github.com/rzach/cv-zach/blob/master/rz-vita.sty
+\renewcommand*{\bibitem}{\addtocounter{papers}{1}\item}
 \defbibenvironment{bibliography}
-{\list{}
-  {\setlength{\leftmargin}{\bibhang}%
-   \setlength{\itemsep}{\bibitemsep}%
-   \setlength{\parsep}{\bibparsep}}}
-{\endlist}
+{\begin{etaremune}%{\list{}
+		{\setlength{\leftmargin}{\bibhang}%
+			\setlength{\itemsep}{\bibitemsep}%
+			\setlength{\parsep}{\bibparsep}}}
+	{\end{etaremune}}%{\endlist}
 {\bibitem}
+%\renewcommand*{\bibitem}{\addtocounter{papers}{1}\item \mbox{}\hskip-0.9cm\hbox to 0.9cm{\hfill\arabic{papers}.~\,}}
+%\defbibenvironment{bibliography}
+%{\list{}
+%  {\setlength{\leftmargin}{\bibhang}%
+%   \setlength{\itemsep}{\bibitemsep}%
+%   \setlength{\parsep}{\bibparsep}}}
+%{\endlist}
+%{\bibitem}
 
 \renewcommand{\bibfont}{\normalfont\fontsize{10}{12.4}\selectfont}
 % Counters for keeping track of papers
 \newcounter{papers}
 
-\DeclareSortingScheme{ty}{
+\DeclareSortingTemplate{ty}{
   \sort{
     \field{title}
   }
