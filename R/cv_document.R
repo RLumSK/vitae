@@ -6,9 +6,10 @@
 #' @inheritParams rmarkdown::pdf_document
 #' @param ... Arguments passed to bookdown::pdf_document2().
 #' @param pandoc_vars Pandoc variables to be passed to the template.
+#' @param bib_format Option to provide and own bib_format file, e.g., with the template
 #'
 #' @export
-cv_document <- function(..., pandoc_args = NULL, pandoc_vars = NULL) {
+cv_document <- function(..., pandoc_args = NULL, pandoc_vars = NULL, bib_format = NULL) {
   for (i in seq_along(pandoc_vars)){
     pandoc_args <- c(pandoc_args, rmarkdown::pandoc_variable_arg(names(pandoc_vars)[[i]], pandoc_vars[[i]]))
   }
@@ -33,12 +34,20 @@ cv_document <- function(..., pandoc_args = NULL, pandoc_vars = NULL) {
     if (has_meta(knit_meta, "biliography_entry")) {
       header_contents <- c(
         header_contents,
-        readLines(system.file("bib_format.tex", package = "vitae")),
+        if(is.null(bib_format)){
+          readLines(system.file("bib_format.tex", package = "vitae"))
+
+        }
+        else {
+          readLines(normalizePath(bib_format))
+
+        },
         bibliography_header(
           flatten_meta(knit_meta, function(x) inherits(x, "biliography_entry"))
         )
       )
     }
+
 
     if ("--include-in-header" %in% args) {
       header_file <- args[which(args == "--include-in-header") + 1]
@@ -52,6 +61,11 @@ cv_document <- function(..., pandoc_args = NULL, pandoc_vars = NULL) {
     }
 
     cat(header_contents, sep = "\n", file = header_file, append = TRUE)
+
+    ##aded to allow a manipulation of the bold names
+    if ("postheader-includes" %in% names(metadata)) {
+      cat(c("", metadata[["postheader-includes"]]), sep = "\n", file = header_file, append = TRUE)
+    }
 
     args
   }
