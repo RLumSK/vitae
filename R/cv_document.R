@@ -49,6 +49,11 @@ cv_document <- function(..., pandoc_args = NULL, pandoc_vars = NULL, bib_format 
 
     header_file <- tempfile("cv-header", fileext = ".tex")
     xfun::write_utf8(header_contents, header_file)
+
+    if ("postheader-includes" %in% names(metadata)) {
+      cat(c("", metadata[["postheader-includes"]]), sep = "\n", file = header_file, append = TRUE)
+    }
+
     args <- c(args, rmarkdown::includes_to_pandoc_args(rmarkdown::includes(in_header = header_file)))
     args
   }
