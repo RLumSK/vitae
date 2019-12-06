@@ -4,7 +4,8 @@
 \alias{cv_document}
 \title{Output format for vitae}
 \usage{
-cv_document(..., pandoc_args = NULL, pandoc_vars = NULL)
+cv_document(..., pandoc_args = NULL, pandoc_vars = NULL,
+  bib_format = NULL)
 }
 \arguments{
 \item{...}{Arguments passed to bookdown::pdf_document2().}
@@ -12,6 +13,8 @@ cv_document(..., pandoc_args = NULL, pandoc_vars = NULL)
 \item{pandoc_args}{Additional command line options to pass to pandoc}
 
 \item{pandoc_vars}{Pandoc variables to be passed to the template.}
+
+\item{bib_format}{Option to provide and own bib_format file, e.g., with the template}
 }
 \description{
 This output format provides support for including LaTeX dependencies and
