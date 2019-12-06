@@ -6,7 +6,6 @@
 #' @inheritParams rmarkdown::pdf_document
 #' @param ... Arguments passed to bookdown::pdf_document2().
 #' @param pandoc_vars Pandoc variables to be passed to the template.
-#' @param bib_format Option to provide and own bib_format file, e.g., with the template
 #'
 #' @export
 cv_document <- function(..., pandoc_args = NULL, pandoc_vars = NULL, bib_format = NULL) {
@@ -48,25 +47,9 @@ cv_document <- function(..., pandoc_args = NULL, pandoc_vars = NULL, bib_format 
       )
     }
 
-
-    if ("--include-in-header" %in% args) {
-      header_file <- args[which(args == "--include-in-header") + 1]
-    }
-    else {
-      header_file <- tempfile("cv-header", fileext = ".tex")
-      if ("header-includes" %in% names(metadata)) {
-        cat(c("", metadata[["header-includes"]]), sep = "\n", file = header_file, append = TRUE)
-      }
-      args <- c(args, rmarkdown::includes_to_pandoc_args(rmarkdown::includes(in_header = header_file)))
-    }
-
-    cat(header_contents, sep = "\n", file = header_file, append = TRUE)
-
-    ##aded to allow a manipulation of the bold names
-    if ("postheader-includes" %in% names(metadata)) {
-      cat(c("", metadata[["postheader-includes"]]), sep = "\n", file = header_file, append = TRUE)
-    }
-
+    header_file <- tempfile("cv-header", fileext = ".tex")
+    xfun::write_utf8(header_contents, header_file)
+    args <- c(args, rmarkdown::includes_to_pandoc_args(rmarkdown::includes(in_header = header_file)))
     args
   }
   config
